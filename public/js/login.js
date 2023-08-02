@@ -6,10 +6,12 @@ async function getHome(event) {
         if (email == "" || password == "") {
             return alert("Please fill required details");
         }
-        await axios.post(`${baseUrl}/user/login-authentication`, {
+        const res = await axios.post(`${baseUrl}/user/login-authenticate`, {
             email: email,
             password: password
         });
+        localStorage.setItem("token", res.data.token);
+        alert(res.data.message);
     } catch (err) {
         alert(err.response.data.message);
     }
