@@ -12,7 +12,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "public")));
-app.use(cors());
+//app.use(cors());
 
 app.use("/user", userRoutes);
 
