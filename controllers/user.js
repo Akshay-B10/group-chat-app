@@ -26,9 +26,15 @@ exports.addUser = async (req, res) => {
                 message: "User already exist"
             });
         }
+        const validPhone = parseInt(phone);
+        if (phone.length != 10 || !validPhone || validPhone.toString().length != 10) {
+            return res.status(400).json({
+                message: "Invalid mobile number"
+            });
+        }
         const saltRounds = 10;
         const hash = await bcrypt.hash(password, saltRounds);
-        User.create({
+        await User.create({
             name: name,
             email: email,
             phone: phone,
