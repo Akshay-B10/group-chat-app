@@ -7,7 +7,9 @@ const User = require("../models/user");
 
 function generateToken(id) {
     const secretKey = "temporaryRandomstring";
-    return jwt.sign(id, secretKey);
+    return jwt.sign({
+        id: id
+    }, secretKey);
 }
 
 exports.getSignUp = (req, res) => {
@@ -50,6 +52,10 @@ exports.loginAuthenticate = async (req, res) => {
             message: "Something went wrong"
         });
     }
+};
+
+exports.getIndex = (req, res) => {
+    res.sendFile(path.join(__dirname, "../", "views", "index.html"));
 }
 
 exports.addUser = async (req, res) => {

@@ -11,7 +11,7 @@ async function getHome(event) {
             password: password
         });
         localStorage.setItem("token", res.data.token);
-        alert(res.data.message);
+        window.location.href = "/user/index"
     } catch (err) {
         alert(err.response.data.message);
     }
