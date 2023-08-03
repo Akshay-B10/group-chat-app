@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Window</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <style>
+        .box {
+            max-width: 50rem;
+            min-height: 75vh;
+            background-color: rgb(7, 96, 75);
+            border-color: rgba(5, 63, 33, 0.744);
+        }
+    </style>
+</head>
+
+<body data-bs-theme="dark">
+    <div class="container-fluid box card text-center position-absolute top-50 start-50 translate-middle p-0">
+        <div class="card-header fs-5">Chat App</div>
+        <div class="card text-bg-light">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item text-start">You joined</li>
+                <li class="list-group-item text-start">User joined</li>
+                <li class="list-group-item text-start">You: Hello</li>
+                <li class="list-group-item text-end">User: Hii, how are you?</li>
+                <li class="list-group-item text-start">You: I am fine.</li>
+            </ul>
+        </div>
+        <div class="container-fluid input-group card-footer position-absolute bottom-0 start-50 translate-middle-x">
+            <input type="text" class="form-control">
+            <button type="button" class="btn btn-light fw-medium">Send</button>
+        </div>
+    </div>
+</body>
+
+</html>
