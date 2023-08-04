@@ -1,3 +1,15 @@
+async function pageReload() {
+    const res = await axios.get(`${baseUrl}/message/get-all`);
+    const messages = res.data.messages;
+    const chatList = document.querySelector("#chat-list");
+    for (let i = 0; i < messages.length; i++) {
+        const li = document.createElement("li");
+        li.className = "list-group-item text-start";
+        li.appendChild(document.createTextNode(`${messages[i].message}`));
+        chatList.appendChild(li);
+    }
+};
+
 async function sentMsg(event) {
     event.preventDefault();
     try {
@@ -25,3 +37,5 @@ async function sentMsg(event) {
 var baseUrl = "http://localhost:3000";
 
 document.querySelector("#send").addEventListener("click", sentMsg);
+
+window.addEventListener("DOMContentLoaded", pageReload);
