@@ -12,16 +12,28 @@ function displayMsg(data) {
 async function pageReload() {
     try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${baseUrl}/message/get-all`, {
+        const oldMsgs = JSON.parse(localStorage.getItem("messages")) || [];
+        if (oldMsgs.length > 0) {
+            oldMsgs.forEach(item => {
+                displayMsg(item);
+            });
+        }
+        const lastMsgId = localStorage.getItem("last-msg-id");
+        const res = await axios.get(`${baseUrl}/message/get-all-new?lastMsgId=${lastMsgId || -1}`, {
             headers: {
                 "Authorization": token
             }
         });
         const messages = res.data.messages;
-        msgCount = messages.length;
+        // msgCount = messages.length;
         for (let i = 0; i < messages.length; i++) {
+            if (i == messages.length - 1) {
+                localStorage.setItem("last-msg-id", messages[i].id);
+            }
             displayMsg(messages[i]);
         };
+        const newMsgs = oldMsgs.concat(messages);
+        localStorage.setItem("messages", JSON.stringify(newMsgs));
     } catch (err) {
         console.log(err);
         alert("Something went wrong");
@@ -47,7 +59,7 @@ async function sentMsg(event) {
             myself: true,
             message: msg
         });
-        msgCount++;
+        //msgCount++;
         document.querySelector("#msg-box").value = "";
     } catch (err) {
         alert(err.response.data.message);
@@ -59,13 +71,13 @@ async function sentMsg(event) {
 
 var baseUrl = "http://localhost:3000";
 
-var msgCount = 0;
+//var msgCount = 0;
 const chatBox = document.querySelector("#chat-box");
 
 document.querySelector("#send").addEventListener("click", sentMsg);
 
 window.addEventListener("DOMContentLoaded", pageReload);
-
+/*
 setInterval(async () => {
     try {
         const token = localStorage.getItem("token");
@@ -85,3 +97,4 @@ setInterval(async () => {
         console.log(err);
     }
 }, 1000);
+*/

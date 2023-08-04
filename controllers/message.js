@@ -1,10 +1,17 @@
+const { Op } = require("sequelize");
 const Message = require("../models/message");
 const sequelize = require("../utils/config");
 
-exports.getAllMessages = async (req, res) => {
+exports.getAllNewMessages = async (req, res) => {
     try {
         const userId = req.user.id;
+        const lastMsgId = +req.query.lastMsgId;
         const messages = await Message.findAll({
+            where: {
+                id : {
+                    [Op.gt]: lastMsgId
+                }
+            },
             attributes: ["id", "message",
             [
                 sequelize.literal(`userId = ${userId}`),
