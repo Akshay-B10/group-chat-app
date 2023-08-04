@@ -1,13 +1,23 @@
 const Message = require("../models/message");
+const sequelize = require("../utils/config");
 
-exports.pageReload = async (req, res) => {
+exports.getAllMessages = async (req, res) => {
     try {
-        const messages = await Message.findAll();
+        const userId = req.user.id;
+        const messages = await Message.findAll({
+            attributes: ["id", "message",
+            [
+                sequelize.literal(`userId = ${userId}`),
+                "myself"
+            ]
+        ]
+        });
         res.json({
             messages: messages
         });
     } catch (err) {
         res.status(500).json({
+            err: err,
             message: "Something went wrong"
         });
     }

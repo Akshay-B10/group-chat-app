@@ -15,9 +15,47 @@
             border-color: rgba(5, 63, 33, 0.744);
         }
 
-        .msg-box {
+        .msg-box-border {
             border: 1px white solid;
             border-radius: 0.375rem;
+        }
+
+        .no-border {
+            border: 0px;
+        }
+
+        .transparent {
+            background-color: rgb(7, 96, 75);
+            border: 0px;
+        }
+
+        .gen-msg {
+            padding: 0.25rem 0;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+            align-self: center;
+        }
+
+        .my-msg {
+            padding: 0.25rem 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #dee2e6;
+            background-color: #212529;
+            border-radius: 10px 10px 0 10px;
+            max-width: 60%;
+            width: fit-content;
+            align-self: flex-end;
+        }
+
+        .others-msg {
+            padding: 0.25rem 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #000;
+            background-color: #f8f9fa;
+            border-radius: 10px 10px 10px 0;
+            max-width: 60%;
+            width: fit-content;
+            align-self: flex-start;
         }
     </style>
 </head>
@@ -26,19 +64,15 @@
     <div class="container-fluid box card position-absolute top-50 start-50 translate-middle p-0">
         <div class="card-header text-center fs-5">Chat App</div>
         <div class="container-fluid position-absolute bottom-0 start-50 translate-middle-x p-0">
-            <div class="card">
-                <ul class="list-group list-group-flush" id="chat-list">
-                    <li class="list-group-item fst-italic text-center">You joined</li>
-                    <li class="list-group-item fst-italic text-center">User joined</li>
-                    <li class="list-group-item text-start">You: Hello</li>
-                    <li class="list-group-item text-end">User: Hii, how are you?</li>
-                    <li class="list-group-item text-start">You: I am fine.</li>
-                </ul>
+            <div class="card px-3 transparent" id="chat-box">
+                <p class="gen-msg">You joined</p>
             </div>
-            <div class="hstack msg-box gap-3 py-2 px-3">
-                <input type="text" class="form-control" id="msg-box">
-                <button type="button" class="btn btn-light fw-medium" id="send">Send</button>
-            </div>
+            <form>
+                <div class="hstack msg-box-border gap-3 py-2 px-3">
+                    <input type="text" class="form-control" id="msg-box">
+                    <button type="submit" class="btn btn-light fw-medium" id="send">Send</button>
+                </div>
+            </form>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
