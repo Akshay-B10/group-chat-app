@@ -2,22 +2,28 @@ const { Op } = require("sequelize");
 const Message = require("../models/message");
 const sequelize = require("../utils/config");
 
+const JWTService = require("../services/jwt");
+
 exports.getAllNewMessages = async (req, res) => {
     try {
         const userId = req.user.id;
         const lastMsgId = +req.query.lastMsgId;
+        const groupId = +req.query.groupId;
         const messages = await Message.findAll({
             where: {
-                id : {
-                    [Op.gt]: lastMsgId
-                }
+                [Op.and]: [{
+                    id: {
+                        [Op.gt]: lastMsgId
+                    },
+                    groupId: groupId
+                }]
             },
             attributes: ["id", "message",
-            [
-                sequelize.literal(`userId = ${userId}`),
-                "myself"
+                [
+                    sequelize.literal(`userId = ${userId}`),
+                    "myself"
+                ]
             ]
-        ]
         });
         res.json({
             messages: messages
@@ -33,12 +39,15 @@ exports.getAllNewMessages = async (req, res) => {
 exports.sentMsg = async (req, res) => {
     try {
         const msg = req.body.message;
+        const groupId = +req.query.groupId;
         await req.user.createMessage({
-            message: msg
+            message: msg,
+            sender: req.user.name,
+            groupId: groupId
         });
         res.json({
             message: "Success"
-        })
+        });
     } catch (err) {
         res.status(500).json({
             message: "Error sending message",

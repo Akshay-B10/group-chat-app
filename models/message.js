@@ -10,8 +10,13 @@ const Message = sequelize.define("message", {
         primaryKey: true
     },
     message: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false
+    },
+    sender: DataTypes.STRING,
+    recieverId: {
+        type: DataTypes.INTEGER, // Either userId of receiver or null for group chat
+        allowNull: true
     }
 });
 

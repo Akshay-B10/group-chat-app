@@ -1,5 +1,6 @@
-const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+
+const JWTService = require("../services/jwt");
 
 exports.authenticate = async (req, res, next) => {
     try {
@@ -7,8 +8,7 @@ exports.authenticate = async (req, res, next) => {
         if (!token) {
             throw ("User authentication failed");
         }
-        const secretKey = "temporaryRandomstring";
-        const unknownUser = jwt.verify(token, secretKey);
+        const unknownUser = JWTService.decodeToken(token);
         if (!unknownUser) {
             throw ("Enter valid email and password");
         }

@@ -1,3 +1,17 @@
+function displayGroup(group, theme) {
+    const li = document.createElement("li");
+    li.className = `list-group-item list-group-item-action list-group-item-${theme}`;
+    li.setAttribute("value", group.id);
+    li.appendChild(document.createTextNode(`${group.name}`));
+    document.querySelector("#left-panel").appendChild(li);
+    if (theme == "dark") {
+        const chatHead = document.querySelector("#chat-head");
+        chatHead.textContent = "";
+        chatHead.appendChild(document.createTextNode(`${group.name}`));
+        selectedLi = li;
+    };
+}
+
 function displayMsg(data) {
     const p = document.createElement("p");
     if (data.myself) {
@@ -9,17 +23,28 @@ function displayMsg(data) {
     chatBox.appendChild(p);
 }
 
-async function pageReload() {
+async function showMessages(token, selectedGroup) {
     try {
-        const token = localStorage.getItem("token");
-        const oldMsgs = JSON.parse(localStorage.getItem("messages")) || [];
+        const chatBox = document.querySelector("#chat-box");
+        while (chatBox.children.length != 0) {
+            chatBox.removeChild(chatBox.lastElementChild);
+        }
+        const messageData = JSON.parse(localStorage.getItem(`chat-${selectedGroup}`));
+        let oldMsgs;
+        let lastMsgId;
+        if (messageData) {
+            oldMsgs = messageData.messages;
+            lastMsgId = messageData.lastMsgId;
+        } else {
+            oldMsgs = [];
+            lastMsgId = -1;
+        }
         if (oldMsgs.length > 0) {
             oldMsgs.forEach(item => {
                 displayMsg(item);
             });
         }
-        const lastMsgId = localStorage.getItem("last-msg-id");
-        const res = await axios.get(`${baseUrl}/message/get-all-new?lastMsgId=${lastMsgId || -1}`, {
+        const res = await axios.get(`${baseUrl}/message/get-all-new?lastMsgId=${lastMsgId}&groupId=${selectedGroup}`, {
             headers: {
                 "Authorization": token
             }
@@ -28,15 +53,50 @@ async function pageReload() {
         // msgCount = messages.length;
         for (let i = 0; i < messages.length; i++) {
             if (i == messages.length - 1) {
-                localStorage.setItem("last-msg-id", messages[i].id);
+                const newMsgs = oldMsgs.concat(messages);
+                localStorage.setItem(`chat-${selectedGroup}`, JSON.stringify({
+                    messages: newMsgs,
+                    lastMsgId: messages[i].id
+                }));
+                // localStorage.setItem("last-msg-id", messages[i].id);
             }
             displayMsg(messages[i]);
         };
-        const newMsgs = oldMsgs.concat(messages);
-        localStorage.setItem("messages", JSON.stringify(newMsgs));
     } catch (err) {
         console.log(err);
-        alert("Something went wrong");
+        alert("Messages couldn't load");
+    }
+}
+
+async function pageReload() {
+    try {
+        const token = localStorage.getItem("token");
+        const result = await axios.get(`${baseUrl}/group/get-all`, {
+            headers: {
+                "Authorization": token
+            }
+        });
+        // Ui to display groupList in left panel.
+        let selectedGroup = localStorage.getItem("selected-group");
+        for (let i = 0; i < result.data.length; i++) {
+            if ((selectedGroup && selectedGroup == result.data[i].id) || (!selectedGroup && i == 0)) {
+                displayGroup(result.data[i], "dark");
+            } else {
+                displayGroup(result.data[i], "light");
+            }
+            if (!selectedGroup && i == result.data.length - 1) {
+                selectedGroup = result.data[0].id;
+                localStorage.setItem("selected-group", selectedGroup);
+            }
+        }
+        if (!selectedGroup) {
+            return;
+        }
+        showMessages(token, selectedGroup);
+
+    } catch (err) {
+        console.log(err);
+        alert("Page couldn't load");
     }
 };
 
@@ -48,7 +108,8 @@ async function sentMsg(event) {
             return;
         }
         const token = localStorage.getItem("token");
-        const res = await axios.post(`${baseUrl}/message/sent`, {
+        const selectedGroup = localStorage.getItem("selected-group");
+        const res = await axios.post(`${baseUrl}/message/sent?groupId=${selectedGroup}`, {
             message: msg,
         }, {
             headers: {
@@ -65,8 +126,102 @@ async function sentMsg(event) {
         alert(err.response.data.message);
         console.log(err.response.err);
     }
+};
+
+function displayMembersToAdd(contact) {
+    // Div Element For Contact
+    const div = document.createElement("div");
+    div.className = "form-check mb-2";
+
+    // Append Checkbox
+    const checkBox = document.createElement("input");
+    checkBox.className = "form-check-input me-4";
+    checkBox.type = "checkbox";
+    checkBox.id = contact.id;
+    div.appendChild(checkBox);
+
+    // Label for checkbox
+    const label = document.createElement("label");
+    label.className = "form-check-label";
+    label.appendChild(document.createTextNode(`${contact.name}`));
+    div.appendChild(label);
+
+    document.querySelector("#new-group-form").appendChild(div);
 }
 
+async function newGroup() {
+    document.querySelector("#more-options").click();
+    const token = localStorage.getItem("token");
+    const res = await axios.get(`${baseUrl}/user/get-contacts`, {
+        headers: {
+            "Authorization": token
+        }
+    });
+    const contacts = res.data;
+    const newGroupForm = document.querySelector("#new-group-form");
+    while (newGroupForm.firstElementChild !== newGroupForm.lastElementChild) {
+        newGroupForm.removeChild(newGroupForm.lastElementChild);
+    }
+    for (let i = 0; i < contacts.length; i++) {
+        displayMembersToAdd(contacts[i]);
+    }
+};
+
+async function createGroup(event) {
+    event.preventDefault();
+    try {
+        const form = document.querySelector("#new-group-form");
+        const data = {
+            name: form.firstElementChild.value || null
+        };
+        const members = [];
+        const formChildrens = form.children;
+        for (let i = 1; i < formChildrens.length; i++) {
+            if (formChildrens[i].firstElementChild.checked) {
+                const subData = {};
+                subData.id = formChildrens[i].firstElementChild.id;
+                subData.checked = formChildrens[i].firstElementChild.checked;
+                members.push(subData);
+            }
+        }
+        data.members = members;
+        const token = localStorage.getItem("token");
+        const res = await axios.post(`${baseUrl}/group/create`, data, {
+            headers: {
+                "Authorization": token
+            }
+        });
+        const group = res.data;
+        if (!localStorage.getItem("selected-group")) {
+            localStorage.setItem("selected-group", group.id);
+            displayGroup(group, "dark");
+        } else {
+            displayGroup(group, "light");
+        }
+        document.querySelector("#close-new-btn").click();
+    } catch (err) {
+        alert("Couldn't create group");
+    }
+};
+
+function selectGroup(event) {
+    const li = event.target;
+    if (selectedLi == li) {
+        return;
+    }
+    const darkClass = "list-group-item-dark";
+    const lightClass = "list-group-item-light";
+    selectedLi.classList.replace(darkClass, lightClass);
+    li.classList.replace(lightClass, darkClass);
+    selectedLi = li;
+    localStorage.setItem("selected-group", li.getAttribute("value"));
+
+    // Chat head Ui
+    const chatHead = document.querySelector("#chat-head");
+    chatHead.textContent = "";
+    chatHead.appendChild(document.createTextNode(`${li.textContent}`));
+    showMessages(localStorage.getItem("token"), li.getAttribute("value"));
+};
 // Main Code
 
 var baseUrl = "http://localhost:3000";
@@ -75,6 +230,13 @@ var baseUrl = "http://localhost:3000";
 const chatBox = document.querySelector("#chat-box");
 
 document.querySelector("#send").addEventListener("click", sentMsg);
+
+document.querySelector("#new-group-btn").addEventListener("click", newGroup);
+
+document.querySelector("#create-new-group-btn").addEventListener("click", createGroup);
+
+let selectedLi;
+document.querySelector("#left-panel").addEventListener("click", selectGroup);
 
 window.addEventListener("DOMContentLoaded", pageReload);
 /*

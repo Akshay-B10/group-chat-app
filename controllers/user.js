@@ -1,16 +1,13 @@
 const path = require("path");
 
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const { Op } = require("sequelize");
 
+const JWTService = require("../services/jwt");
+
+const sequelize = require("../utils/config");
 const User = require("../models/user");
-
-function generateToken(id) {
-    const secretKey = "temporaryRandomstring";
-    return jwt.sign({
-        id: id
-    }, secretKey);
-}
+const Group = require("../models/group");
 
 exports.getSignUp = (req, res) => {
     res.sendFile(path.join(__dirname, "../", "views", "signup.html"));
@@ -44,7 +41,7 @@ exports.loginAuthenticate = async (req, res) => {
         }
         res.json({
             message: "User successfully logged in",
-            token: generateToken(user.id)
+            token: JWTService.encodeToken(user.id)
         });
     } catch (err) {
         res.status(400).json({
@@ -78,18 +75,59 @@ exports.addUser = async (req, res) => {
         }
         const saltRounds = 10;
         const hash = await bcrypt.hash(password, saltRounds);
-        await User.create({
+        const newUser = await User.create({
             name: name,
             email: email,
             phone: phone,
             password: hash
         });
+        /*
+        // Making group of two people: Indicating Personal Chat By default with all other users
+        const existingUsers = await User.findAll({
+            where: {
+                id: {
+                    [Op.ne]: newUser.id
+                }
+            }
+        });
+        if (existingUsers.length > 0) {
+            await sequelize.transaction(async (t) => {
+                for (const existingUser of existingUsers) {
+                    const group = await Group.create({ t });
+                    await group.addUsers([newUser, existingUser], { t });
+                }
+            })
+        };
+        */
         res.json({
             message: "User created successfully"
         });
     } catch (err) {
         res.status(400).json({
             message: err
+        });
+    }
+};
+
+exports.getContacts = async (req, res) => {
+    try {
+        const contacts = await User.findAll({
+            where: {
+                id: {
+                    [Op.ne]: req.user.id
+                }
+            }
+        });
+        const data = contacts.map(contact => {
+            return {
+                id: JWTService.encodeToken(contact.id),
+                name: contact.name
+            };
+        })
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({
+            message: "Something went wrong"
         });
     }
 };
