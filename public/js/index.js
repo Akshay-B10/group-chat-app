@@ -4,7 +4,7 @@ function displayGroup(group, theme) {
     li.setAttribute("value", group.id);
     li.appendChild(document.createTextNode(`${group.name}`));
     document.querySelector("#left-panel").appendChild(li);
-    if (theme == "dark") {
+    if (theme == "light") {
         const chatHead = document.querySelector("#chat-head");
         chatHead.textContent = "";
         chatHead.appendChild(document.createTextNode(`${group.name}`));
@@ -14,11 +14,25 @@ function displayGroup(group, theme) {
 
 function displayMsg(data) {
     const p = document.createElement("p");
+    if (!data.sender) {
+        p.className = "gen-msg";
+        if (data.myself) {
+            p.appendChild(document.createTextNode(`You joined`));
+        } else {
+            p.appendChild(document.createTextNode(`${data.message}`));
+        }
+        chatBox.appendChild(p);
+        return;
+    };
     if (data.myself) {
         p.className = "my-msg";
     } else {
         p.className = "others-msg";
-    }
+        const name = document.createElement("strong");
+        name.appendChild(document.createTextNode(data.sender));
+        p.appendChild(name);
+        p.appendChild(document.createElement("br"));
+    };
     p.appendChild(document.createTextNode(`${data.message}`));
     chatBox.appendChild(p);
 }
@@ -80,9 +94,9 @@ async function pageReload() {
         let selectedGroup = localStorage.getItem("selected-group");
         for (let i = 0; i < result.data.length; i++) {
             if ((selectedGroup && selectedGroup == result.data[i].id) || (!selectedGroup && i == 0)) {
-                displayGroup(result.data[i], "dark");
-            } else {
                 displayGroup(result.data[i], "light");
+            } else {
+                displayGroup(result.data[i], "dark");
             }
             if (!selectedGroup && i == result.data.length - 1) {
                 selectedGroup = result.data[0].id;
@@ -118,7 +132,8 @@ async function sentMsg(event) {
         });
         displayMsg({
             myself: true,
-            message: msg
+            message: msg,
+            sender: "Yes"
         });
         //msgCount++;
         document.querySelector("#msg-box").value = "";
@@ -194,10 +209,11 @@ async function createGroup(event) {
         const group = res.data;
         if (!localStorage.getItem("selected-group")) {
             localStorage.setItem("selected-group", group.id);
-            displayGroup(group, "dark");
-        } else {
             displayGroup(group, "light");
+        } else {
+            displayGroup(group, "dark");
         }
+        form.firstElementChild.value = null;
         document.querySelector("#close-new-btn").click();
     } catch (err) {
         alert("Couldn't create group");
@@ -211,8 +227,8 @@ function selectGroup(event) {
     }
     const darkClass = "list-group-item-dark";
     const lightClass = "list-group-item-light";
-    selectedLi.classList.replace(darkClass, lightClass);
-    li.classList.replace(lightClass, darkClass);
+    selectedLi.classList.replace(lightClass, darkClass);
+    li.classList.replace(darkClass, lightClass);
     selectedLi = li;
     localStorage.setItem("selected-group", li.getAttribute("value"));
 

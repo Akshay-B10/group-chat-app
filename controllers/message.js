@@ -18,7 +18,7 @@ exports.getAllNewMessages = async (req, res) => {
                     groupId: groupId
                 }]
             },
-            attributes: ["id", "message",
+            attributes: ["id", "message", "sender",
                 [
                     sequelize.literal(`userId = ${userId}`),
                     "myself"
@@ -34,7 +34,7 @@ exports.getAllNewMessages = async (req, res) => {
             message: "Something went wrong"
         });
     }
-}
+};
 
 exports.sentMsg = async (req, res) => {
     try {

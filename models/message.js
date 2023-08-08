@@ -13,11 +13,7 @@ const Message = sequelize.define("message", {
         type: DataTypes.TEXT,
         allowNull: false
     },
-    sender: DataTypes.STRING,
-    recieverId: {
-        type: DataTypes.INTEGER, // Either userId of receiver or null for group chat
-        allowNull: true
-    }
+    sender: DataTypes.STRING
 });
 
 module.exports = Message;

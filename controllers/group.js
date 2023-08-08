@@ -58,8 +58,16 @@ exports.create = async (req, res) => {
             isGroup: true,
             createdBy: req.user.id
         });
+        await req.user.createMessage({
+            message: `${req.user.name} joined`,
+            groupId: group.id
+        });
         for (const user of users) {
             await group.addUser(user);
+            await user.createMessage({
+                message: `${user.name} joined`,
+                groupId: group.id
+            });
         };
         res.json({
             id: group.id,
