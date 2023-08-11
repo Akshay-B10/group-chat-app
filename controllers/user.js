@@ -121,7 +121,9 @@ exports.getContacts = async (req, res) => {
         const data = contacts.map(contact => {
             return {
                 id: JWTService.encodeToken(contact.id),
-                name: contact.name
+                name: contact.name,
+                email: contact.email,
+                phone: contact.phone
             };
         })
         res.json(data);

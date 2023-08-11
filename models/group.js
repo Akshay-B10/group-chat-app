@@ -15,10 +15,6 @@ const Group = sequelize.define("group", {
         type: DataTypes.STRING,
         defaultValue: null
     },
-    isGroup: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-    },
     createdBy: {
         type: DataTypes.INTEGER, // User id
         defaultValue: null

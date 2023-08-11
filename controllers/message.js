@@ -11,12 +11,18 @@ exports.getAllNewMessages = async (req, res) => {
         const groupId = +req.query.groupId;
         const messages = await Message.findAll({
             where: {
+                id: {
+                    [Op.gt]: lastMsgId
+                },
+                groupId: groupId
+                /*
                 [Op.and]: [{
                     id: {
                         [Op.gt]: lastMsgId
                     },
                     groupId: groupId
                 }]
+                */
             },
             attributes: ["id", "message", "sender",
                 [
