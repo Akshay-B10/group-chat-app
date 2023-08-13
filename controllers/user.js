@@ -41,6 +41,7 @@ exports.loginAuthenticate = async (req, res) => {
         }
         res.json({
             message: "User successfully logged in",
+            name: user.name,
             token: JWTService.encodeToken(user.id)
         });
     } catch (err) {

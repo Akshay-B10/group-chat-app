@@ -1,9 +1,11 @@
+const http = require("http");
 const path = require("path");
 
 const express = require("express");
 const bodyParser = require("body-parser");
 require("dotenv").config();
 const cors = require("cors");
+const socketIo = require("socket.io");
 
 const sequelize = require("./utils/config");
 
@@ -44,9 +46,48 @@ Message.belongsTo(Group);
 Group.belongsToMany(User, { through: UserGroup });
 User.belongsToMany(Group, { through: UserGroup });
 
+// WebSocket
+app.get("/socket.io/socket.io.js", (req, res) => {
+    res.set("Content-Type", "application/javascript");
+    res.sendFile(path.join(__dirname, "/node_modules/socket.io/client-dist/socket.io.js"));
+});
+
+const server = http.createServer(app);
+const io = socketIo(server);
+const users = {};
+
+io.on("connection", (socket) => {
+
+    socket.on("connect-user", (name, group) => {
+        users[socket.id] = {
+            name: name,
+            groups: [group]
+        };
+    });
+
+    socket.on("send-message", (data, group) => {
+        socket.broadcast.emit("display-to-members", data);
+        /*
+        if (group == "") {
+            socket.broadcast.emit("display-to-members", data);
+        } else {
+            if (!users[socket.id].groups.includes(group)) {
+                socket.join(group);
+                users[socket.id].groups.push(group);
+            }
+        }
+        socket.to(group).emit("display-to-members", data);
+        */
+    });
+
+    socket.on("disconnect", () => {
+        delete users[socket.id];
+    });
+});
+
 sequelize
     .sync()
     .then(() => {
-        app.listen(Number(process.env.PORT));
+        server.listen(Number(process.env.PORT));
     })
     .catch((err) => console.log(err));

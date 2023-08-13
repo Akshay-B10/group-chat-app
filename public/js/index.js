@@ -1,3 +1,43 @@
+// Main Code
+
+var baseUrl = "http://localhost:3000";
+
+//var msgCount = 0;
+const chatBox = document.querySelector("#chat-box");
+
+document.querySelector("#send").addEventListener("click", sentMsg);
+
+document.querySelector("#new-group-btn").addEventListener("click", newGroup);
+
+document.querySelector("#create-new-group-btn").addEventListener("click", createGroup);
+
+let selectedLi;
+document.querySelector("#left-panel").addEventListener("click", selectGroup);
+
+document.querySelector("#members-list").addEventListener("click", makeAdminOrRemove);
+
+document.querySelector("#add-members-btn").addEventListener("click", addMembers);
+
+document.querySelector("#search-contacts").addEventListener("keyup", searchContacts);
+
+window.addEventListener("DOMContentLoaded", pageReload);
+
+const socket = io(baseUrl);
+socket.on("connect", () => {
+    socket.emit("connect-user", localStorage.getItem("name"), localStorage.getItem("selected-group"));
+});
+
+socket.on("display-to-members", data => {
+    console.log("displaying to others", data);
+    displayMsg(data);
+});
+
+// Functions
+
+function scrollBottom(chatContainer) {
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
 function displayGroup(group, theme) {
     const li = document.createElement("li");
     li.className = `list-group-item list-group-item-action list-group-item-${theme}`;
@@ -35,6 +75,7 @@ function displayMsg(data) {
     };
     p.appendChild(document.createTextNode(`${data.message}`));
     chatBox.appendChild(p);
+    scrollBottom(chatBox);
 }
 
 async function showMessages(token, selectedGroup) {
@@ -64,7 +105,6 @@ async function showMessages(token, selectedGroup) {
             }
         });
         const messages = res.data.messages;
-        // msgCount = messages.length;
         for (let i = 0; i < messages.length; i++) {
             if (i == messages.length - 1) {
                 const newMsgs = oldMsgs.concat(messages);
@@ -72,7 +112,6 @@ async function showMessages(token, selectedGroup) {
                     messages: newMsgs,
                     lastMsgId: messages[i].id
                 }));
-                // localStorage.setItem("last-msg-id", messages[i].id);
             }
             displayMsg(messages[i]);
         };
@@ -135,8 +174,12 @@ async function sentMsg(event) {
             message: msg,
             sender: "Yes"
         });
-        //msgCount++;
         document.querySelector("#msg-box").value = "";
+        socket.emit("send-message", {
+            message: msg,
+            sender: localStorage.getItem("name"),
+            myself: false // For other users.
+        }, localStorage.getItem("selected-group"));
     } catch (err) {
         alert(err.response.data.message);
         console.log(err.response.err);
@@ -446,50 +489,3 @@ function searchContacts(event) {
     });
 }
 
-// Main Code
-
-var baseUrl = "http://localhost:3000";
-
-//var msgCount = 0;
-const chatBox = document.querySelector("#chat-box");
-
-document.querySelector("#send").addEventListener("click", sentMsg);
-
-document.querySelector("#new-group-btn").addEventListener("click", newGroup);
-
-document.querySelector("#create-new-group-btn").addEventListener("click", createGroup);
-
-let selectedLi;
-document.querySelector("#left-panel").addEventListener("click", selectGroup);
-
-// document.querySelector("#group-details-btn").addEventListener("click", getGroupDetails);
-// it can be called when left panel selectGroup function gets triggered;
-
-document.querySelector("#members-list").addEventListener("click", makeAdminOrRemove);
-
-document.querySelector("#add-members-btn").addEventListener("click", addMembers);
-
-document.querySelector("#search-contacts").addEventListener("keyup", searchContacts);
-
-window.addEventListener("DOMContentLoaded", pageReload);
-/*
-setInterval(async () => {
-    try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`${baseUrl}/message/get-all`, {
-            headers: {
-                "Authorization": token
-            }
-        });
-        const messages = res.data.messages;
-        if (msgCount < messages.length) {
-            for (let i = msgCount; i < messages.length; i++) {
-                displayMsg(messages[i]);
-                msgCount++;
-            }
-        }
-    } catch (err) {
-        console.log(err);
-    }
-}, 1000);
-*/
