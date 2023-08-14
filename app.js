@@ -65,19 +65,34 @@ io.on("connection", (socket) => {
         };
     });
 
+    socket.on("join-group", (newGroup, prevGroup) => {
+        let message = "";
+        if (io.sockets.adapter.rooms[newGroup] && io.sockets.adapter.rooms[newGroup].sockets[socket.id]) {
+            message = message + `Group already connected: ${newGroup}`;
+        } else {
+            socket.join(newGroup);
+            message = message + `Group connected: ${newGroup}`;
+        };
+        if (prevGroup) {
+            socket.leave(prevGroup);
+            message = message + `Group left: ${prevGroup}`;
+        };
+        socket.emit("group-connection", message);
+    });
+
     socket.on("send-message", (data, group) => {
-        socket.broadcast.emit("display-to-members", data);
-        /*
+        //socket.broadcast.emit("display-to-members", data);
         if (group == "") {
             socket.broadcast.emit("display-to-members", data);
         } else {
+            /*
             if (!users[socket.id].groups.includes(group)) {
                 socket.join(group);
                 users[socket.id].groups.push(group);
             }
+            */
+           socket.to(group).emit("display-to-members", data);
         }
-        socket.to(group).emit("display-to-members", data);
-        */
     });
 
     socket.on("disconnect", () => {

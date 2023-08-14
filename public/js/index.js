@@ -27,8 +27,16 @@ socket.on("connect", () => {
     socket.emit("connect-user", localStorage.getItem("name"), localStorage.getItem("selected-group"));
 });
 
+let prevGroup;
+if (localStorage.getItem("selected-group")) {
+    socket.emit("join-group", localStorage.getItem("selected-group"), prevGroup);
+};
+
+socket.on("group-connection", message => {
+    console.log(message);
+});
+
 socket.on("display-to-members", data => {
-    console.log("displaying to others", data);
     displayMsg(data);
 });
 
@@ -243,6 +251,8 @@ async function createGroup(event) {
         if (!localStorage.getItem("selected-group")) {
             localStorage.setItem("selected-group", group.id);
             displayGroup(group, "light");
+
+            socket.emit("join-group", localStorage.getItem("selected-group"), prevGroup);
         } else {
             displayGroup(group, "dark");
         }
@@ -263,6 +273,7 @@ function selectGroup(event) {
     selectedLi.classList.replace(lightClass, darkClass);
     li.classList.replace(darkClass, lightClass);
     selectedLi = li;
+    prevGroup = localStorage.getItem("selected-group");
     localStorage.setItem("selected-group", li.getAttribute("value"));
 
     // Chat head Ui
@@ -271,6 +282,9 @@ function selectGroup(event) {
     chatHead.appendChild(document.createTextNode(`${li.textContent}`));
     showMessages(localStorage.getItem("token"), li.getAttribute("value"));
     getGroupDetails();
+
+    console.log(localStorage.getItem("selected-group"), prevGroup);
+    socket.emit("join-group", localStorage.getItem("selected-group"), prevGroup);
 };
 
 function displayMembersToAdd(user, htmlEleId) {
