@@ -3,6 +3,7 @@ const Message = require("../models/message");
 const sequelize = require("../utils/config");
 
 const JWTService = require("../services/jwt");
+const S3Service = require("../services/aws-s3");
 
 exports.getAllNewMessages = async (req, res) => {
     try {
@@ -15,14 +16,6 @@ exports.getAllNewMessages = async (req, res) => {
                     [Op.gt]: lastMsgId
                 },
                 groupId: groupId
-                /*
-                [Op.and]: [{
-                    id: {
-                        [Op.gt]: lastMsgId
-                    },
-                    groupId: groupId
-                }]
-                */
             },
             attributes: ["id", "message", "sender",
                 [
@@ -59,5 +52,25 @@ exports.sentMsg = async (req, res) => {
             message: "Error sending message",
             err: err
         })
+    }
+};
+
+exports.sendMultiMedia = async (req, res) => {
+    try {
+        const fileName = `${new Date}_${req.file.originalname}`;
+        const fileUrl = await S3Service.uploadToS3(fileName, req.file.buffer);
+        await req.user.createMessage({
+            message: fileUrl,
+            sender: req.user.name,
+            groupId: +req.query.groupId
+        });
+        res.status(201).json({
+            message: fileUrl
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            success: false
+        });
     }
 };

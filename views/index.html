@@ -89,7 +89,12 @@
             <form>
                 <div class="hstack msg-box-border gap-3 py-2 px-3">
                     <input type="text" class="form-control" id="msg-box">
-                    <button type="submit" class="btn btn-light fw-medium" id="send">Send</button>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-light fw-medium material-symbols-outlined" id="send">send</button>
+                        <label for="file-input" class="btn btn-light fw-medium material-symbols-outlined" id="file-input-label">
+                            <input type="file" style="display: none;" id="file-input">upload_file
+                        </label>
+                    </div> 
                 </div>
             </form>
         </div>

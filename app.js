@@ -91,7 +91,7 @@ io.on("connection", (socket) => {
                 users[socket.id].groups.push(group);
             }
             */
-           socket.to(group).emit("display-to-members", data);
+            socket.to(group).emit("display-to-members", data);
         }
     });
 

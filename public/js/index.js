@@ -20,6 +20,11 @@ document.querySelector("#add-members-btn").addEventListener("click", addMembers)
 
 document.querySelector("#search-contacts").addEventListener("keyup", searchContacts);
 
+let sendingFiles = false;
+document.querySelector("#file-input-label").addEventListener("click", () => {
+    document.querySelector("#file-input").addEventListener("change", uploadFile);
+});
+
 window.addEventListener("DOMContentLoaded", pageReload);
 
 const socket = io(baseUrl);
@@ -44,7 +49,12 @@ socket.on("display-to-members", data => {
 
 function scrollBottom(chatContainer) {
     chatContainer.scrollTop = chatContainer.scrollHeight;
-}
+};
+
+function uploadFile() {
+    sendingFiles = true;
+    document.querySelector("#msg-box").value = document.querySelector("#file-input").value.slice(12);
+};
 
 function displayGroup(group, theme) {
     const li = document.createElement("li");
@@ -81,10 +91,22 @@ function displayMsg(data) {
         p.appendChild(name);
         p.appendChild(document.createElement("br"));
     };
-    p.appendChild(document.createTextNode(`${data.message}`));
+    if (data.message.slice(0, 8) === "https://") {
+        const a = document.createElement("a");
+        a.href = data.message;
+        if (data.myself) {
+            a.className = "link-light link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover";
+        } else {
+            a.className = "link-dark link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover";
+        }
+        a.appendChild(document.createTextNode(data.message.slice(124)));
+        p.appendChild(a);
+    } else {
+        p.appendChild(document.createTextNode(`${data.message}`));
+    }
     chatBox.appendChild(p);
     scrollBottom(chatBox);
-}
+};
 
 async function showMessages(token, selectedGroup) {
     try {
@@ -155,6 +177,7 @@ async function pageReload() {
         }
         showMessages(token, selectedGroup);
         getGroupDetails();
+        socket.emit("join-group", localStorage.getItem("selected-group"), prevGroup);
     } catch (err) {
         console.log(err);
         alert("Page couldn't load");
@@ -170,27 +193,58 @@ async function sentMsg(event) {
         }
         const token = localStorage.getItem("token");
         const selectedGroup = localStorage.getItem("selected-group");
-        const res = await axios.post(`${baseUrl}/message/sent?groupId=${selectedGroup}`, {
-            message: msg,
-        }, {
-            headers: {
-                "Authorization": token
-            }
-        });
-        displayMsg({
-            myself: true,
-            message: msg,
-            sender: "Yes"
-        });
+        if (sendingFiles) {
+            const selectedFile = document.querySelector("#file-input").files[0];
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+            const token = localStorage.getItem("token");
+            const res = await axios.post(`${baseUrl}/message/send-multimedia?groupId=${selectedGroup}`, formData, {
+                headers: {
+                    "Authorization": token,
+                    "Content-Type": "multipart/form-data"
+                }
+            });
+            sendingFiles = false;
+            displayMsg({
+                myself: true,
+                message: res.data.message,
+                sender: "Yes"
+            });
+            socket.emit("send-message", {
+                message: res.data.message,
+                sender: localStorage.getItem("name"),
+                myself: false // For other users.
+            }, localStorage.getItem("selected-group"));
+            document.querySelector("#file-input").removeEventListener("change", uploadFile);
+            document.querySelector("#file-input").value = "";
+        } else {
+            const res = await axios.post(`${baseUrl}/message/sent?groupId=${selectedGroup}`, {
+                message: msg,
+            }, {
+                headers: {
+                    "Authorization": token
+                }
+            });
+            displayMsg({
+                myself: true,
+                message: msg,
+                sender: "Yes"
+            });
+            socket.emit("send-message", {
+                message: msg,
+                sender: localStorage.getItem("name"),
+                myself: false // For other users.
+            }, localStorage.getItem("selected-group"));
+        }
         document.querySelector("#msg-box").value = "";
-        socket.emit("send-message", {
-            message: msg,
-            sender: localStorage.getItem("name"),
-            myself: false // For other users.
-        }, localStorage.getItem("selected-group"));
     } catch (err) {
         alert(err.response.data.message);
         console.log(err.response.err);
+        if (sendingFiles) {
+            sendingFiles = false;
+            document.querySelector("#file-input").removeEventListener("change", uploadFile);
+            document.querySelector("#file-input").value = "";
+        };
     }
 };
 
