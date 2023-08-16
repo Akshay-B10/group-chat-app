@@ -27,15 +27,13 @@ document.querySelector("#file-input-label").addEventListener("click", () => {
 
 window.addEventListener("DOMContentLoaded", pageReload);
 
+let prevGroup;
+
 const socket = io(baseUrl);
 socket.on("connect", () => {
     socket.emit("connect-user", localStorage.getItem("name"), localStorage.getItem("selected-group"));
 });
 
-let prevGroup;
-if (localStorage.getItem("selected-group")) {
-    socket.emit("join-group", localStorage.getItem("selected-group"), prevGroup);
-};
 
 socket.on("group-connection", message => {
     console.log(message);
@@ -400,6 +398,9 @@ async function getGroupDetails() {
     try {
         if (document.querySelector("#add-members-btn").getAttribute("style")) {
             document.querySelector("#add-members-btn").setAttribute("style", "display: none;");
+        };
+        if (!document.querySelector("#search-contacts").disabled) {
+            document.querySelector("#search-contacts").disabled = true;
         };
         const groupId = localStorage.getItem("selected-group");
         if (!groupId) {

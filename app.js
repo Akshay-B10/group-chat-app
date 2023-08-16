@@ -8,6 +8,7 @@ const cors = require("cors");
 const socketIo = require("socket.io");
 
 const sequelize = require("./utils/config");
+require("./controllers/archived-message");
 
 const userRoutes = require("./routes/user");
 const messageRoutes = require("./routes/message");
