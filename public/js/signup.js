@@ -26,6 +26,6 @@ async function addUser(event) {
 
 // Main code
 
-var baseUrl = "http://localhost:3000";
+var baseUrl = "http://44.201.83.42";
 
 document.querySelector("#signup").addEventListener("click", addUser);

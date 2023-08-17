@@ -23,7 +23,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: "http://44.201.83.42",
     methods: ["GET", "POST"],
     credentials: true
 }));

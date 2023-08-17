@@ -1,6 +1,6 @@
 // Main Code
 
-var baseUrl = "http://localhost:3000";
+var baseUrl = "http://44.201.83.42";
 
 //var msgCount = 0;
 const chatBox = document.querySelector("#chat-box");
