@@ -255,9 +255,9 @@ async function newGroup() {
         }
     });
     const contacts = res.data;
-    const newGroupForm = document.querySelector("#new-group-form");
-    while (newGroupForm.firstElementChild !== newGroupForm.lastElementChild) {
-        newGroupForm.removeChild(newGroupForm.lastElementChild);
+    const newGroupList = document.querySelector("#contacts-list");
+    while (newGroupList.children.length !== 0) {
+        newGroupList.removeChild(newGroupList.lastElementChild);
     }
     for (let i = 0; i < contacts.length; i++) {
         displayMembersToAdd(contacts[i], "#contacts-list");
@@ -396,7 +396,7 @@ function groupDetailsUI(user, status) {
 
 async function getGroupDetails() {
     try {
-        if (document.querySelector("#add-members-btn").getAttribute("style")) {
+        if (!document.querySelector("#add-members-btn").getAttribute("style")) {
             document.querySelector("#add-members-btn").setAttribute("style", "display: none;");
         };
         if (!document.querySelector("#search-contacts").disabled) {

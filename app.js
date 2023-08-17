@@ -82,16 +82,9 @@ io.on("connection", (socket) => {
     });
 
     socket.on("send-message", (data, group) => {
-        //socket.broadcast.emit("display-to-members", data);
         if (group == "") {
             socket.broadcast.emit("display-to-members", data);
         } else {
-            /*
-            if (!users[socket.id].groups.includes(group)) {
-                socket.join(group);
-                users[socket.id].groups.push(group);
-            }
-            */
             socket.to(group).emit("display-to-members", data);
         }
     });

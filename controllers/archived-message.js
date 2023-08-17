@@ -10,7 +10,7 @@ const job = new CronJob("0 0 0 * * *", archiveMessage);
 
 async function archiveMessage() {
     const thresholdDate = new Date();
-    thresholdDate.setDate(thresholdDate.getDate() - 1); // 2 day ago
+    thresholdDate.setDate(thresholdDate.getDate() - 1); // 1 day ago
 
     const oldMessages = await Message.findAll({
         where: {
